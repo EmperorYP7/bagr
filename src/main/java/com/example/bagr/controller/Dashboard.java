@@ -31,8 +31,12 @@ public class Dashboard {
             if(decoded == null) {
                 throw new BagrException(400, "Invalid authorisation provided", BagrException.Reason.BAD_REQUEST);
             }
+
             String userName = decoded[0];
             Executive found = executiveRepo.findByUsername(userName);
+            if(found == null) {
+                throw new BagrException(404, "User not found", BagrException.Reason.NOT_FOUND);
+            }
 
             // Verify password
             String password = decoded[1];
