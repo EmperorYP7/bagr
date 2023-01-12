@@ -1,9 +1,20 @@
 package com.example.bagr.helper;
 
+import com.example.bagr.core.EnvManager;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
+
+import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.security.MessageDigest;
-import java.util.Base64;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 public class DashboardHelper {
 
@@ -46,5 +57,34 @@ public class DashboardHelper {
 
     public static boolean isPasswordCorrect(String password, String hash) {
         return DashboardHelper.getSHA256Hash(password).equals(hash);
+    }
+
+    public static String generateToken(String subject, Map<String, String> claims, String secret) {
+
+        Key hmacKey = new SecretKeySpec(Base64.getDecoder().decode(secret),
+                SignatureAlgorithm.HS256.getJcaName());
+
+        String token = Jwts.builder()
+                    .setSubject(subject)
+                    .setId(UUID.randomUUID().toString())
+                    .setClaims(claims)
+                    .setIssuedAt(Date.from(Instant.now()))
+                    .setExpiration(Date.from(Instant.now().plus(5L, ChronoUnit.HOURS)))
+                    .signWith(hmacKey)
+                .compact();
+
+        return token;
+    }
+
+    public static Claims getClaims(String jwtString, String secret) {
+        Key hmacKey = new SecretKeySpec(Base64.getDecoder().decode(secret),
+                SignatureAlgorithm.HS256.getJcaName());
+
+        Jws<Claims> jwt = Jwts.parserBuilder()
+                .setSigningKey(hmacKey)
+                .build()
+                .parseClaimsJws(jwtString);
+
+        return jwt.getBody();
     }
 }
