@@ -9,6 +9,7 @@ import com.example.bagr.view.Status;
 import com.example.bagr.view.dashboard.ItineraryResponse;
 import com.example.bagr.view.dashboard.LoginResponse;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,39 @@ public class Dashboard {
                             .code(400)
                             .message(e.getMessage())
                             .reason(BagrException.Reason.INTERNAL_SERVER_ERROR.toString())
+                    .build());
+        }
+
+        return responseBuilder.build();
+    }
+
+    @PutMapping("/itinerary")
+    public ApiResponse<ItineraryResponse> changeItinerary(@RequestHeader(AUTHORIZATION) String bearerToken) {
+        ApiResponse.ApiResponseBuilder<ItineraryResponse> responseBuilder = ApiResponse.builder();
+        try {
+            // Verify token
+            Claims claims = DashboardHelper.getClaims(bearerToken, API_KEY);
+
+            // Identify caller
+            String userName = claims.get("username").toString();
+
+            // Execute
+            String message = String.format("Hi %s", userName);
+
+            // Respond
+            responseBuilder.payload(ItineraryResponse.builder()
+                            .message(message)
+                    .build())
+                    .status(new Status());
+
+//        } catch (BagrException e) {
+//            responseBuilder.status(e.toStatus());
+
+        } catch (Exception e) {
+            responseBuilder.status(Status.builder()
+                    .code(400)
+                    .message(e.getMessage())
+                    .reason(BagrException.Reason.INTERNAL_SERVER_ERROR.toString())
                     .build());
         }
 

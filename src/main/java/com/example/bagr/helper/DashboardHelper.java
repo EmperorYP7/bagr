@@ -76,7 +76,19 @@ public class DashboardHelper {
         return token;
     }
 
-    public static Claims getClaims(String jwtString, String secret) {
+    private static String getJWTString(String bearerToken) {
+        if(bearerToken != null && bearerToken.toLowerCase().startsWith("bearer")) {
+            String trimmedToken = bearerToken.substring("Bearer ".length()).trim();
+            return trimmedToken;
+        } else {
+            return "";
+        }
+    }
+
+    public static Claims getClaims(String bearerToken, String secret) {
+
+        String jwtString = getJWTString(bearerToken);
+
         Key hmacKey = new SecretKeySpec(Base64.getDecoder().decode(secret),
                 SignatureAlgorithm.HS256.getJcaName());
 
